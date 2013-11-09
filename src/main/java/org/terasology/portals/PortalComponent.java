@@ -16,7 +16,7 @@
 package org.terasology.portals;
 
 import org.terasology.entitySystem.Component;
-import org.terasology.model.structures.BlockSelection;
+//import org.terasology.model.structures.BlockSelection;
 
 /**
  * Component for future portal stuff
@@ -25,8 +25,8 @@ import org.terasology.model.structures.BlockSelection;
  */
 public class PortalComponent implements Component {
     /** The block positions that make up the portal itself (where stuff would spawn / teleport) */
-    private BlockSelection _portalBlocks;
+    //private BlockSelection _portalBlocks;
 
     /** The block positions making up the frame, damage to the frame could break the portal */
-    private BlockSelection _frameBlocks;
+    //private BlockSelection _frameBlocks;
 }

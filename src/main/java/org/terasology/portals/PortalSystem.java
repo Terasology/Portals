@@ -17,13 +17,15 @@ package org.terasology.portals;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.entitySystem.EntityManager;
-import org.terasology.entitySystem.EntityRef;
-import org.terasology.entitySystem.EventHandlerSystem;
-import org.terasology.entitySystem.ReceiveEvent;
-import org.terasology.entitySystem.RegisterComponentSystem;
-import org.terasology.events.ActivateEvent;
-import org.terasology.game.CoreRegistry;
+import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.event.ReceiveEvent;
+import org.terasology.entitySystem.event.internal.EventSystem;
+import org.terasology.entitySystem.systems.ComponentSystem;
+import org.terasology.entitySystem.systems.RegisterMode;
+import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.logic.common.ActivateEvent;
+import org.terasology.engine.CoreRegistry;
 import org.terasology.world.block.BlockComponent;
 
 /**
@@ -32,8 +34,8 @@ import org.terasology.world.block.BlockComponent;
  *
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */
-@RegisterComponentSystem
-public class PortalSystem implements EventHandlerSystem {
+@RegisterSystem(RegisterMode.AUTHORITY)
+public class PortalSystem implements ComponentSystem {
     protected EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);

@@ -4,9 +4,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.componentSystem.UpdateSubscriberSystem;
-import org.terasology.entitySystem.*;
-import org.terasology.game.CoreRegistry;
+import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
+import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.systems.RegisterMode;
+import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.engine.CoreRegistry;
 import org.terasology.rendering.logic.MeshComponent;
 
 import javax.vecmath.Color4f;
@@ -19,7 +22,7 @@ import java.util.Set;
  *
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */
-@RegisterComponentSystem
+@RegisterSystem(RegisterMode.AUTHORITY)
 public class HoldingSystem implements UpdateSubscriberSystem {
 
     protected EntityManager entityManager;
@@ -58,7 +61,7 @@ public class HoldingSystem implements UpdateSubscriberSystem {
 
         // Go fetch all the Holdings.
         // TODO: Do we have a helper method for this? I forgot and it is late :P
-        for (EntityRef holdingEntity : entityManager.iteratorEntities(HoldingComponent.class)) {
+        for (EntityRef holdingEntity : entityManager.getEntitiesWith(HoldingComponent.class)) {
             holdingEntities.add(holdingEntity);
         }
 
@@ -66,16 +69,16 @@ public class HoldingSystem implements UpdateSubscriberSystem {
         SetMultimap<EntityRef, EntityRef> spawnableEntitiesByHolding = HashMultimap.create();
 
         // Loop through all Spawnables and assign them to a Holding if one exists that is also the Spawnables parent (its Spawner)
-        for (EntityRef spawnableEntity : entityManager.iteratorEntities(SpawnableComponent.class)) {
+        for (EntityRef spawnableEntity : entityManager.getEntitiesWith(SpawnableComponent.class)) {
 
             for (EntityRef holdingEntity : holdingEntities) {
-
+/*
                 // Check the spawnable's parent (a reference to a Spawner entity) against the holding (which we cheat-know to also be a Spawner)
                 if (spawnableEntity.getComponent(SpawnableComponent.class).parent == holdingEntity) {
                     // Map this Spawnable to its Holding
                     spawnableEntitiesByHolding.put(holdingEntity, spawnableEntity);
                     break;
-                }
+                }*/
             }
         }
 

@@ -20,15 +20,15 @@ import javax.vecmath.Vector3f;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.components.SimpleAIComponent;
-import org.terasology.entitySystem.Prefab;
-import org.terasology.physics.character.CharacterMovementComponent;
+import org.terasology.logic.ai.SimpleAIComponent;
+import org.terasology.entitySystem.prefab.Prefab;
+import org.terasology.logic.characters.CharacterMovementComponent;
 import org.terasology.rendering.logic.MeshComponent;
-import org.terasology.components.world.LocationComponent;
-import org.terasology.entitySystem.EntityManager;
-import org.terasology.entitySystem.EntityRef;
+import org.terasology.logic.location.LocationComponent;
+import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.rendering.logic.SkeletalMeshComponent;
-import org.terasology.utilities.FastRandom;
+import org.terasology.utilities.random.FastRandom;
 
 /**
  * @author Immortius <immortius@gmail.com>
@@ -62,14 +62,14 @@ public class DefaultMobFactory {
             LocationComponent loc = entity.getComponent(LocationComponent.class);
             if (loc != null) {
                 loc.setWorldPosition(position);
-                loc.setLocalScale((random.randomFloat() + 1.0f) * 0.4f + 0.2f);
+                loc.setLocalScale((random.nextFloat() + 1.0f) * 0.4f + 0.2f);
                 entity.saveComponent(loc);
             }
 
             logger.info("Creating a {} with color {} - if default/black then will overwrite with a random color", prefab.getName(), mesh.color);
             // For uninitialized (technically black) GelCubes we just come up with a random color. Well, small list. For now.
             if (mesh.color.equals(new Color4f(0, 0, 0, 1))) {
-                int colorId = Math.abs(random.randomInt()) % COLORS.length;
+                int colorId = Math.abs(random.nextInt()) % COLORS.length;
                 mesh.color.set(COLORS[colorId].x, COLORS[colorId].y, COLORS[colorId].z, 1.0f);
                 entity.saveComponent(mesh);
             }

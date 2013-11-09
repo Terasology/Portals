@@ -18,6 +18,7 @@ package org.terasology.portals;
 import org.terasology.entitySystem.Component;
 
 import com.google.common.collect.Lists;
+import org.terasology.world.block.ForceBlockActive;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ import java.util.List;
  *
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */
+@ForceBlockActive
 public class SpawnerComponent implements Component {
 
     /** Types of Spawnables this Spawner can spawn */

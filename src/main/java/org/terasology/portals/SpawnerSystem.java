@@ -18,17 +18,20 @@ package org.terasology.portals;
 import com.google.common.collect.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.componentSystem.UpdateSubscriberSystem;
-import org.terasology.components.SimpleAIComponent;
-import org.terasology.components.HierarchicalAIComponent;
-import org.terasology.components.LocalPlayerComponent;
-import org.terasology.components.world.LocationComponent;
-import org.terasology.entitySystem.*;
-import org.terasology.game.CoreRegistry;
-import org.terasology.logic.LocalPlayer;
-import org.terasology.utilities.EntityTools;
+import org.terasology.entitySystem.entity.EntityManager;
+import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.prefab.Prefab;
+import org.terasology.entitySystem.prefab.PrefabManager;
+import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
+import org.terasology.entitySystem.systems.In;
+import org.terasology.logic.ai.SimpleAIComponent;
+import org.terasology.logic.ai.HierarchicalAIComponent;
+import org.terasology.logic.location.LocationComponent;
+import org.terasology.entitySystem.systems.RegisterMode;
+import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.engine.CoreRegistry;
 import org.terasology.monitoring.PerformanceMonitor;
-import org.terasology.utilities.FastRandom;
+import org.terasology.utilities.random.FastRandom;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.BlockComponent;
 
@@ -42,7 +45,7 @@ import java.util.Set;
  *
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */
-@RegisterComponentSystem
+@RegisterSystem(RegisterMode.AUTHORITY)
 public class SpawnerSystem implements UpdateSubscriberSystem {
     @In
     private WorldProvider worldProvider;
@@ -112,7 +115,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
             // TODO: Do we have a helper method for this? I forgot and it is late :P
             int maxMobs = 0;
             ArrayList<EntityRef> spawnerEntities = new ArrayList<EntityRef>(4);
-            for (EntityRef spawnerEntity : entityManager.iteratorEntities(SpawnerComponent.class)) {
+            for (EntityRef spawnerEntity : entityManager.getEntitiesWith(SpawnerComponent.class)) {
                 spawnerEntities.add(spawnerEntity);
                 maxMobs += spawnerEntity.getComponent(SpawnerComponent.class).maxMobsPerSpawner;
             }
@@ -138,7 +141,8 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 if(spawnComp.maxMobsPerSpawner > 0) {
                     // TODO Make sure we don't spawn too much stuff. Not very robust yet and doesn't tie mobs to their spawner of origin right
                     //int maxMobs = entityManager.getComponentCount(SpawnerComponent.class) * spawnComp.maxMobsPerSpawner;
-                    int currentMobs = entityManager.getComponentCount(SimpleAIComponent.class) + entityManager.getComponentCount(HierarchicalAIComponent.class);
+                    //int currentMobs = entityManager.getComponentCount(SimpleAIComponent.class) + entityManager.getComponentCount(HierarchicalAIComponent.class);
+                    int currentMobs = Lists.newArrayList(entityManager.getEntitiesWith(SimpleAIComponent.class)).size();
 
                     logger.info("Mob count: {}/{}", currentMobs, maxMobs);
 
@@ -163,13 +167,15 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
 
                 } else if (entity.hasComponent(LocationComponent.class)) {
                     // Check if this is a player in which case don't spawn if the player is dead
-                    // TODO: Does this really matter?
+/*
+                    // TODO: Does this really matter? Also checked out until we can detect players in multiplayer better
                     if (entity.hasComponent(LocalPlayerComponent.class)) {
                         LocalPlayerComponent lpc = entity.getComponent(LocalPlayerComponent.class);
                         if (lpc.isDead) {
                             continue;
                         }
                     }
+*/
 
                     LocationComponent lc = entity.getComponent(LocationComponent.class);
                     originPos = lc.getWorldPosition();
@@ -179,7 +185,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                     logger.warn("Spawning was attempted by a Spawner entity without a BlockComponent or LocationComponent. No can do.");
                     continue;
                 }
-
+/* TODO: Commented out pending new way of iterating through players, may need a new PlayerComponent attached to player entities
                 // Check for spawning that depends on a player position
                 if (spawnComp.needsPlayer) {
                     // TODO: shouldn't use local player, need some way to find nearest player
@@ -194,7 +200,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                         }
                     }
                 }
-
+*/
                 //TODO check for bigger creatures and creatures with special needs like biome
 
                 // In case we're doing ranged spawning we might be changing the exact spot to spawn at (otherwise they're the same)
@@ -202,7 +208,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 if (spawnComp.rangedSpawning) {
 
                     // Add random range on the x and z planes, leave y (height) unchanged for now
-                    spawnPos = new Vector3f(originPos.x + random.randomFloat() * spawnComp.range, originPos.y, originPos.z + random.randomFloat() * spawnComp.range);
+                    spawnPos = new Vector3f(originPos.x + random.nextFloat() * spawnComp.range, originPos.y, originPos.z + random.nextFloat() * spawnComp.range);
 
                     // If a minimum distance is set make sure we're beyond it
                     if (spawnComp.minDistance != 0) {
@@ -238,14 +244,14 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                     }
                 }
 
-                String chosenSpawnerType = spawnComp.types.get(random.randomIntAbs(spawnComp.types.size()));
+                String chosenSpawnerType = spawnComp.types.get(random.nextInt(spawnComp.types.size()));
                 Set randomType = typeLists.get(chosenSpawnerType);
                 logger.info("Picked random type {} which returned {} prefabs", chosenSpawnerType, randomType.size());
                 if (randomType.size() == 0) {
                     logger.warn("Type {} wasn't found, sad :-( Won't spawn anything this time", chosenSpawnerType);
                     return;
                 }
-                int anotherRandomIndex = random.randomIntAbs(randomType.size());
+                int anotherRandomIndex = random.nextInt(randomType.size());
                 Object[] randomPrefabs = randomType.toArray();
                 Prefab chosenPrefab = (Prefab) randomPrefabs[anotherRandomIndex];
                 logger.info("Picked index {} of types {} which is a {}, to spawn at {}", anotherRandomIndex, chosenSpawnerType, chosenPrefab, spawnPos);
@@ -253,7 +259,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 // Finally create the Spawnable. Assign parentage so we can tie Spawnables to their Spawner if needed
                 EntityRef newSpawnableRef = factory.generate(spawnPos, chosenPrefab);
                 SpawnableComponent newSpawnable = newSpawnableRef.getComponent(SpawnableComponent.class);
-                newSpawnable.parent = entity;
+                //newSpawnable.parent = entity;
 
                 // TODO: Use some sort of parent/inheritance thing with gelcubes -> specialized gelcubes
                 // TODO: Introduce proper probability-based spawning
