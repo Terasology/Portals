@@ -23,7 +23,9 @@ import org.terasology.world.block.ForceBlockActive;
 import java.util.List;
 
 /**
- * Component that enables an entity to be a spawner of something
+ * Component that enables an entity to be a spawner of something.
+ * It forces any block it attaches to "active" so it'll maintain a BlockComponent for location purposes.
+ * However other entities can be valid spawners as well, such as creatures that have a LocationComponent.
  *
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */

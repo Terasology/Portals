@@ -259,7 +259,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 // Finally create the Spawnable. Assign parentage so we can tie Spawnables to their Spawner if needed
                 EntityRef newSpawnableRef = factory.generate(spawnPos, chosenPrefab);
                 SpawnableComponent newSpawnable = newSpawnableRef.getComponent(SpawnableComponent.class);
-                //newSpawnable.parent = entity;
+                newSpawnable.parent = entity;
 
                 // TODO: Use some sort of parent/inheritance thing with gelcubes -> specialized gelcubes
                 // TODO: Introduce proper probability-based spawning

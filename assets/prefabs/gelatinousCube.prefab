@@ -1,4 +1,5 @@
 {
+  "persisted" : true,
   "Location" : {},
   "Mesh" : {
     "renderType" : "GelatinousCube"
