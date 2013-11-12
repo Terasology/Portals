@@ -26,6 +26,9 @@ import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.entitySystem.systems.In;
 import org.terasology.logic.ai.SimpleAIComponent;
 import org.terasology.logic.ai.HierarchicalAIComponent;
+import org.terasology.logic.inventory.InventoryComponent;
+import org.terasology.logic.inventory.ItemComponent;
+import org.terasology.logic.inventory.SlotBasedInventoryManager;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
@@ -34,6 +37,8 @@ import org.terasology.monitoring.PerformanceMonitor;
 import org.terasology.utilities.random.FastRandom;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockManager;
+import org.terasology.world.block.family.BlockFamily;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
@@ -47,25 +52,31 @@ import java.util.Set;
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class SpawnerSystem implements UpdateSubscriberSystem {
+    private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);
+
+    @In
+    private EntityManager entityManager;
+
+    @In
+    private BlockManager blockMan;
+
     @In
     private WorldProvider worldProvider;
 
-    protected EntityManager entityManager;
+    @In
+    private SlotBasedInventoryManager invMan;
 
     private final FastRandom random = new FastRandom();
     private DefaultMobFactory factory;
 
-    private long tick = 0;
-    private long classLastTick = 0;
-
-    private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);
+    private long tick;
+    private long classLastTick;
 
     /** Contains Spawnable prefabs mapped to their spawn type name (not the prefab name!) - each type name may reference multiple prefabs */
     private SetMultimap<String, Prefab> typeLists = HashMultimap.create();
 
     @Override
     public void initialise() {
-        entityManager = CoreRegistry.get(EntityManager.class);
         factory = new DefaultMobFactory();
         factory.setEntityManager(entityManager);
         factory.setRandom(random);
@@ -109,7 +120,6 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
 
         PerformanceMonitor.startActivity("Spawn creatures");
         try {
-
 
             // Prep a list of the Spawners we know about and a total count for max mobs (which is a hack - needs to be per Spawner)
             // TODO: Do we have a helper method for this? I forgot and it is late :P
@@ -255,6 +265,42 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 Object[] randomPrefabs = randomType.toArray();
                 Prefab chosenPrefab = (Prefab) randomPrefabs[anotherRandomIndex];
                 logger.info("Picked index {} of types {} which is a {}, to spawn at {}", anotherRandomIndex, chosenSpawnerType, chosenPrefab, spawnPos);
+
+                // See if the chosen Spawnable has an item it must consume on spawning and if the Spawner can provide it
+                String neededItem = chosenPrefab.getComponent(SpawnableComponent.class).itemToConsume;
+                if (neededItem != null) {
+                    logger.info("This spawnable has an item demand on spawning: {} - Does its spawner have an inventory?", neededItem);
+                    if (entity.hasComponent(InventoryComponent.class)) {
+                        InventoryComponent invComp = entity.getComponent(InventoryComponent.class);
+                        logger.info("Yes - it has an inventory - entity: {}", entity);
+
+                        BlockFamily neededFamily = blockMan.getBlockFamily(neededItem);
+                        logger.info("Needed block family: {}", neededFamily);
+                        EntityRef firstSlot = invMan.getItemInSlot(entity, 0);
+                        logger.info("First slot {}", firstSlot);
+
+                        ItemComponent item = firstSlot.getComponent(ItemComponent.class);
+                        if (item != null) {
+                            logger.info("Got its ItemComponent: {} and its name: {}", item, item.name);
+                            if (neededFamily.getDisplayName().equals(item.name)) {
+                                logger.info("Found the item needed to spawn stuff! Decrementing by 1 then spawning");
+
+                                EntityRef result = invMan.removeItem(entity, firstSlot, 1);
+                                logger.info("Result from decrementing: {}", result);
+                            } else {
+                                logger.info("But that item didn't match what the spawn needed to consume. No spawn!");
+                                continue;
+                            }
+                        } else {
+                            continue;
+                        }
+
+                        logger.info("Successfully decremented an existing item stack - accepting item-based spawning");
+                    } else {
+                        logger.info("Nope - no inventory to source material from, cannot spawn that :-(");
+                        continue;
+                    }
+                }
 
                 // Finally create the Spawnable. Assign parentage so we can tie Spawnables to their Spawner if needed
                 EntityRef newSpawnableRef = factory.generate(spawnPos, chosenPrefab);

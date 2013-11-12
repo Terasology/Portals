@@ -25,11 +25,14 @@ import org.terasology.entitySystem.entity.EntityRef;
  */
 public class SpawnableComponent implements Component {
 
-    /** What category is this spawnable */
+    /** What category is this spawnable. TODO: Change to a set of String "tags" instead ("goblin", "spearman" ... ) */
     public String type = "undefined";
     
     /** Weight for how common the spawnable is, from 0-255 with 0 meaning unspawnable and 255 being the most common */
     public byte probability = 1;
+
+    /** Optional: If spawner is attached to an inventory and this is non-null require that item present and decrement */
+    public String itemToConsume;
 
     /** What made this Spawnable? */
     public EntityRef parent = null;
