@@ -72,7 +72,10 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
     private long tick;
     private long classLastTick;
 
-    /** Contains Spawnable prefabs mapped to their spawn type name (not the prefab name!) - each type name may reference multiple prefabs */
+    /**
+     * Cache containing Spawnable prefabs mapped to their spawnable "tags" - each tag may reference multiple prefabs
+     * and each prefab may have multiple tags
+     * */
     private SetMultimap<String, Prefab> typeLists = HashMultimap.create();
 
     @Override
@@ -93,7 +96,12 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
         for (Prefab prefab : spawnablePrefabs) {
             logger.info("Prepping a Spawnable prefab: {}", prefab);
             SpawnableComponent spawnableComponent = prefab.getComponent(SpawnableComponent.class);
-            typeLists.put(spawnableComponent.type, prefab);
+
+            // Support multiple tags per prefab ("Goblin", "Spearman", "Goblin Spearman", "QuestMob123")
+            for (String tag : spawnableComponent.tags) {
+                logger.info("Adding tag: {} with prefab {}", tag, prefab);
+                typeLists.put(tag, prefab);
+            }
         }
 
         logger.info("Full typeLists: {}", typeLists);
@@ -254,6 +262,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                     }
                 }
 
+                // Pick random type to spawn from the Spawner's list of types then test the cache for matching prefabs
                 String chosenSpawnerType = spawnComp.types.get(random.nextInt(spawnComp.types.size()));
                 Set randomType = typeLists.get(chosenSpawnerType);
                 logger.info("Picked random type {} which returned {} prefabs", chosenSpawnerType, randomType.size());
@@ -261,6 +270,8 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                     logger.warn("Type {} wasn't found, sad :-( Won't spawn anything this time", chosenSpawnerType);
                     return;
                 }
+
+                // Now actually pick one of the matching prefabs randomly and that's what we'll try to spawn
                 int anotherRandomIndex = random.nextInt(randomType.size());
                 Object[] randomPrefabs = randomType.toArray();
                 Prefab chosenPrefab = (Prefab) randomPrefabs[anotherRandomIndex];

@@ -18,6 +18,9 @@ package org.terasology.portals;
 import org.terasology.entitySystem.Component;
 import org.terasology.entitySystem.entity.EntityRef;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Component that enables an entity to be spawned by something.
  *
@@ -27,6 +30,7 @@ public class SpawnableComponent implements Component {
 
     /** What category is this spawnable. TODO: Change to a set of String "tags" instead ("goblin", "spearman" ... ) */
     public String type = "undefined";
+    public Set<String> tags = Collections.emptySet();
     
     /** Weight for how common the spawnable is, from 0-255 with 0 meaning unspawnable and 255 being the most common */
     public byte probability = 1;
