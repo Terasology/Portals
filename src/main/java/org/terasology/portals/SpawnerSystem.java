@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Benjamin Glatzel <benjamin.glatzel@me.com>
+ * Copyright 2013 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.terasology.portals;
 
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
@@ -25,7 +28,6 @@ import org.terasology.entitySystem.prefab.PrefabManager;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.entitySystem.systems.In;
 import org.terasology.logic.ai.SimpleAIComponent;
-import org.terasology.logic.ai.HierarchicalAIComponent;
 import org.terasology.logic.inventory.InventoryComponent;
 import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.logic.inventory.SlotBasedInventoryManager;
@@ -36,13 +38,12 @@ import org.terasology.engine.CoreRegistry;
 import org.terasology.monitoring.PerformanceMonitor;
 import org.terasology.utilities.random.FastRandom;
 import org.terasology.world.WorldProvider;
-import org.terasology.world.block.BlockComponent;
 import org.terasology.world.block.BlockManager;
 import org.terasology.world.block.family.BlockFamily;
 
 import javax.vecmath.Vector3f;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -120,7 +121,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
         // Do a time check to see if we should even bother calculating stuff (really only needed every second or so)
         // Keep a ms counter handy, delta is in seconds
         tick += delta * 1000;
-      
+
         if (tick - classLastTick < 1000) {
             return;
         }
@@ -129,22 +130,23 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
         PerformanceMonitor.startActivity("Spawn creatures");
         try {
 
-            // Prep a list of the Spawners we know about and a total count for max mobs (which is a hack - needs to be per Spawner)
-            // TODO: Do we have a helper method for this? I forgot and it is late :P
+            // Prep a list of the Spawners we know about and a total count for max mobs
             int maxMobs = 0;
-            ArrayList<EntityRef> spawnerEntities = new ArrayList<EntityRef>(4);
-            for (EntityRef spawnerEntity : entityManager.getEntitiesWith(SpawnerComponent.class)) {
-                spawnerEntities.add(spawnerEntity);
-                maxMobs += spawnerEntity.getComponent(SpawnerComponent.class).maxMobsPerSpawner;
+            List<EntityRef> spawnerEntities = Lists.newArrayList();
+
+            // Only care about Spawners that are also Locations (ignore one merely contained in an inventory)
+            for (EntityRef spawner : entityManager.getEntitiesWith(SpawnerComponent.class, LocationComponent.class)) {
+                spawnerEntities.add(spawner);
+                maxMobs += spawner.getComponent(SpawnerComponent.class).maxMobsPerSpawner;
             }
 
-            // Go through entities that are spawners and check to see if something should spawn
-            //logger.info("Count of entities with a SpawnerComponent: {}", entityManager.getComponentCount(SpawnerComponent.class));
+            // Go through entities that are Spawners and check to see if something should spawn
+            logger.info("Count of valid (also have a Location) Spawner entities: {}", spawnerEntities.size());
             for (EntityRef entity : spawnerEntities) {
                 //logger.info("Found a spawner: {}", entity);
                 SpawnerComponent spawnComp = entity.getComponent(SpawnerComponent.class);
 
-                if(spawnComp.lastTick > tick) {
+                if (spawnComp.lastTick > tick) {
                     spawnComp.lastTick = tick;
                 }
 
@@ -156,11 +158,11 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 //logger.info("Going to do stuff");
                 spawnComp.lastTick = tick;
 
-                if(spawnComp.maxMobsPerSpawner > 0) {
+                if (spawnComp.maxMobsPerSpawner > 0) {
                     // TODO Make sure we don't spawn too much stuff. Not very robust yet and doesn't tie mobs to their spawner of origin right
-                    //int maxMobs = entityManager.getComponentCount(SpawnerComponent.class) * spawnComp.maxMobsPerSpawner;
-                    //int currentMobs = entityManager.getComponentCount(SimpleAIComponent.class) + entityManager.getComponentCount(HierarchicalAIComponent.class);
-                    int currentMobs = Lists.newArrayList(entityManager.getEntitiesWith(SimpleAIComponent.class)).size();
+                    //int maxMobs = entityManager.getCountOfEntitiesWith(SpawnerComponent.class) * spawnComp.maxMobsPerSpawner;
+                    //int currentMobs = entityManager.getCountOfEntitiesWith(SimpleAIComponent.class) + entityManager.getCountOfEntitiesWith(HierarchicalAIComponent.class);
+                    int currentMobs = entityManager.getCountOfEntitiesWith(SimpleAIComponent.class);
 
                     logger.info("Mob count: {}/{}", currentMobs, maxMobs);
 
@@ -177,34 +179,21 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                     continue;
                 }
 
-                // Find spawn origin
-                Vector3f originPos;
-                if (entity.hasComponent(BlockComponent.class)) {
-                    BlockComponent blockComp = entity.getComponent(BlockComponent.class);
-                    originPos = blockComp.getPosition().toVector3f();
-
-                } else if (entity.hasComponent(LocationComponent.class)) {
-                    // Check if this is a player in which case don't spawn if the player is dead
 /*
-                    // TODO: Does this really matter? Also checked out until we can detect players in multiplayer better
-                    if (entity.hasComponent(LocalPlayerComponent.class)) {
-                        LocalPlayerComponent lpc = entity.getComponent(LocalPlayerComponent.class);
-                        if (lpc.isDead) {
-                            continue;
-                        }
+                // Dead players that are also Spawners shouldn't spawn stuff ... if that makes sense
+                TODO: Commented out until we can detect players in multiplayer better
+                if (entity.hasComponent(LocalPlayerComponent.class)) {
+                    LocalPlayerComponent lpc = entity.getComponent(LocalPlayerComponent.class);
+                    if (lpc.isDead) {
+                        continue;
                     }
-*/
-
-                    LocationComponent lc = entity.getComponent(LocationComponent.class);
-                    originPos = lc.getWorldPosition();
-                    logger.info("Spawner has a LocationComponent with position: {}, {}, {}", originPos.x, originPos.y, originPos.z);
-
-                } else {
-                    logger.warn("Spawning was attempted by a Spawner entity without a BlockComponent or LocationComponent. No can do.");
-                    continue;
                 }
-/* TODO: Commented out pending new way of iterating through players, may need a new PlayerComponent attached to player entities
-                // Check for spawning that depends on a player position
+*/
+                // Spawn origin
+                Vector3f originPos = entity.getComponent(LocationComponent.class).getWorldPosition();
+/*
+                TODO: Commented out pending new way of iterating through players, may need a new PlayerComponent attached to player entities
+                // Check for spawning that depends on a player position (like being within a certain range)
                 if (spawnComp.needsPlayer) {
                     // TODO: shouldn't use local player, need some way to find nearest player
                     LocalPlayer localPlayer = CoreRegistry.get(LocalPlayer.class);
@@ -278,6 +267,7 @@ public class SpawnerSystem implements UpdateSubscriberSystem {
                 logger.info("Picked index {} of types {} which is a {}, to spawn at {}", anotherRandomIndex, chosenSpawnerType, chosenPrefab, spawnPos);
 
                 // See if the chosen Spawnable has an item it must consume on spawning and if the Spawner can provide it
+                // TODO: Find way for a Spawner to ignore this if it doesn't care about item consumption (even if Spawnable asks)
                 String neededItem = chosenPrefab.getComponent(SpawnableComponent.class).itemToConsume;
                 if (neededItem != null) {
                     logger.info("This spawnable has an item demand on spawning: {} - Does its spawner have an inventory?", neededItem);
