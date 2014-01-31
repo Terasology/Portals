@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 Benjamin Glatzel <benjamin.glatzel@me.com>
+ * Copyright 2014 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,12 +20,13 @@ import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.event.internal.EventSystem;
 import org.terasology.entitySystem.systems.ComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.common.ActivateEvent;
-import org.terasology.engine.CoreRegistry;
+import org.terasology.registry.In;
+import org.terasology.spawning.SpawnerComponent;
+import org.terasology.spawning.SpawnerSystem;
 import org.terasology.world.block.BlockComponent;
 
 /**
@@ -36,13 +37,14 @@ import org.terasology.world.block.BlockComponent;
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class PortalSystem implements ComponentSystem {
-    protected EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);
 
+    @In
+    private EntityManager entityManager;
+
+    @Override
     public void initialise() {
-        entityManager = CoreRegistry.get(EntityManager.class);
-        // register a hook for after the world has been created to check for and place an initial portal
     }
 
     @Override

@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 Benjamin Glatzel <benjamin.glatzel@me.com>
+ * Copyright 2014 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,7 @@
         // Want to be able to spawn multiple things (or one thing in different ways)
         // Ex 1: Spawn a gelcube in the immediate vicinity
         // Ex 2: Spawn a gelcube in the "wild" (within a certain distance / within a zone)
-        //"types" : ["gelcube", "chromaticgelcube", "metallicgelcube", "oreon"]
-        "types" : ["RedTeamLAS"]
+        "types" : ["Oreon"]
     },
     "PlaySoundAction" : {
         sounds = "portals:spawn"
