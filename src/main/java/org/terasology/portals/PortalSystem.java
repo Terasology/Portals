@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.systems.ComponentSystem;
+import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.common.ActivateEvent;
@@ -36,7 +36,7 @@ import org.terasology.world.block.BlockComponent;
  * @author Rasmus 'Cervator' Praestholm <cervator@gmail.com>
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
-public class PortalSystem implements ComponentSystem {
+public class PortalSystem extends BaseComponentSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);
 
