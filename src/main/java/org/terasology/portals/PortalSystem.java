@@ -26,7 +26,6 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.registry.In;
 import org.terasology.spawning.SpawnerComponent;
-import org.terasology.spawning.SpawnerSystem;
 import org.terasology.world.block.BlockComponent;
 
 /**
@@ -38,7 +37,7 @@ import org.terasology.world.block.BlockComponent;
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class PortalSystem extends BaseComponentSystem {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpawnerSystem.class);
+    private static final Logger logger = LoggerFactory.getLogger(PortalSystem.class);
 
     @In
     private EntityManager entityManager;
