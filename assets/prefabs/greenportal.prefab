@@ -19,7 +19,7 @@
     },
     "Spawner" : {
         "types" : ["dangercube"],
-	    "timeBetweenSpawns" : 5000,
+        "period": 5000,
  	    "maxMobsPerSpawner" : 5,
 	    "rangedSpawning" : true,
  	    "range" : 25,
@@ -27,6 +27,6 @@
         "playerNeedRange" :1000
     },
     "PlaySoundAction" : {
-        sounds = "portals:spawn"
+        "sounds": "portals:spawn"
     }
 }

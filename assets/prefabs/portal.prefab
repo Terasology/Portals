@@ -25,6 +25,6 @@
         "types" : ["Oreon"]
     },
     "PlaySoundAction" : {
-        sounds = "portals:spawn"
+        "sounds": "portals:spawn"
     }
 }
