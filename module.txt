@@ -6,8 +6,8 @@
     "description": "Allows portals to be created in the world, responsible for spawning assorted creatures",
     "dependencies": [
         { "id": "Inventory", "minVersion": "1.1.0" },
-        { "id": "Oreons", "minVersion": "0.2.0" },
-        { "id": "Spawning", "minVersion": "0.1.0" }
+        { "id": "Oreons", "minVersion": "1.0.0" },
+        { "id": "Spawning", "minVersion": "1.0.0" }
     ],
     "isServerSideOnly": false,
     "isAsset": true,
