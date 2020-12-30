@@ -1,15 +1,24 @@
 {
-    "id": "Portals",
-    "version": "1.0.0",
-    "author": "Cervator, Esapetri",
-    "displayName": "Portals",
-    "description": "Allows portals to be created in the world, responsible for spawning assorted creatures",
-    "dependencies": [
-        { "id": "Inventory", "minVersion": "1.1.0" },
-        { "id": "Oreons", "minVersion": "1.0.0" },
-        { "id": "Spawning", "minVersion": "1.0.0" }
-    ],
-    "isServerSideOnly": false,
-    "isAsset": true,
-    "isLibrary": true
+  "id": "Portals",
+  "version": "1.1.0-SNAPSHOT",
+  "author": "Cervator, Esapetri",
+  "displayName": "Portals",
+  "description": "Allows portals to be created in the world, responsible for spawning assorted creatures",
+  "dependencies": [
+    {
+      "id": "Inventory",
+      "minVersion": "1.1.0"
+    },
+    {
+      "id": "Oreons",
+      "minVersion": "1.0.0"
+    },
+    {
+      "id": "Spawning",
+      "minVersion": "1.0.0"
+    }
+  ],
+  "isServerSideOnly": false,
+  "isAsset": true,
+  "isLibrary": true
 }
