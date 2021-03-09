@@ -15,7 +15,7 @@
  */
 package org.terasology.portals;
 
-import org.terasology.entitySystem.Component;
+import org.terasology.engine.entitySystem.Component;
 //import org.terasology.model.structures.BlockSelection;
 
 /**
